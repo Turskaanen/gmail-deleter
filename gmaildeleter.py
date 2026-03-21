@@ -3,58 +3,58 @@ import imaplib
 IMAP_SERVER = "imap.gmail.com"
 
 
-def poista_sahkopostit(mail, lahettajat=None, otsikko=None, poista_kaikki=False):
+def delete_emails(mail, senders=None, subject=None, delete_all=False):
     mail.select("inbox")
 
-    if poista_kaikki:
-        print("\nEtsitään KAIKKIA viestejä...")
+    if delete_all:
+        print("\nSearching for ALL emails...")
         status, data = mail.search(None, "ALL")
 
-    elif lahettajat:
-        print("\nEtsitään viestejä lähettäjiltä:", lahettajat)
-        query = " ".join([f'(FROM "{s}")' for s in lahettajat])
+    elif senders:
+        print("\nSearching for emails from senders:", senders)
+        query = " ".join([f'(FROM "{s}")' for s in senders])
         status, data = mail.search(None, query)
 
-    elif otsikko:
-        print(f'\nEtsitään viestejä otsikolla joka sisältää: "{otsikko}"')
-        status, data = mail.search(None, f'(SUBJECT "{otsikko}")')
+    elif subject:
+        print(f'\nSearching for emails with subject containing: "{subject}"')
+        status, data = mail.search(None, f'(SUBJECT "{subject}")')
 
     else:
-        print("Ei hakuehtoja.")
+        print("No search criteria provided.")
         return
 
     if status != "OK":
-        print("Haku epäonnistui.")
+        print("Search failed.")
         return
 
-    viestit = data[0].split()
+    messages = data[0].split()
 
-    if not viestit:
-        print("Ei viestejä poistettavaksi.")
+    if not messages:
+        print("No emails found to delete.")
         return
 
-    print(f"Löytyi {len(viestit)} viestiä. Poistetaan...")
+    print(f"Found {len(messages)} emails. Deleting...")
 
-    for msg_id in viestit:
+    for msg_id in messages:
         mail.store(msg_id, "+FLAGS", "\\Deleted")
 
     mail.expunge()
-    print("\nValmis!")
+    print("\nDone!")
 
 
 def login():
     print("=== LOGIN ===")
-    email_user = input("Syötä Gmail-osoite: ")
-    email_pass = input("Syötä Gmail App Password: ")  # NÄKYY KIRJOITTAESSA
+    email_user = input("Enter Gmail address: ")
+    email_pass = input("Enter Gmail App Password: ")  # Visible while typing
 
     try:
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
         mail.login(email_user, email_pass)
-        print("\nKirjautuminen onnistui!")
+        print("\nLogin successful!")
         return mail
     except Exception as e:
-        print("\nKirjautuminen epäonnistui!")
-        print("Virhe:", e)
+        print("\nLogin failed!")
+        print("Error:", e)
         return None
 
 
@@ -73,22 +73,22 @@ def delete_menu(mail):
 
     if choice == 1:
         sender = input("Sender email: ")
-        poista_sahkopostit(mail, lahettajat=[sender])
+        delete_emails(mail, senders=[sender])
 
     elif choice == 2:
         senders = input("Senders (comma separated): ").replace(" ", "").split(",")
-        poista_sahkopostit(mail, lahettajat=senders)
+        delete_emails(mail, senders=senders)
 
     elif choice == 3:
         confirm = input("Are you sure? (yes/no): ").lower()
         if confirm == "yes":
-            poista_sahkopostit(mail, poista_kaikki=True)
+            delete_emails(mail, delete_all=True)
         else:
             print("Cancelled.")
 
     elif choice == 4:
         subject = input("Enter subject text: ")
-        poista_sahkopostit(mail, otsikko=subject)
+        delete_emails(mail, subject=subject)
 
     else:
         print("Invalid choice.")
@@ -99,6 +99,7 @@ def main():
     print("1. Login")
     print("")
     print("2. Help")
+
     option = input("Choose option: ")
 
     if option == "1":
@@ -106,14 +107,15 @@ def main():
         if mail:
             delete_menu(mail)
             mail.logout()
-            print("\nYhteys suljettu.")
-    
+            print("\nConnection closed.")
+
     if option == "2":
         print("")
-        print("Here you can get your google app password: https://myaccount.google.com/u/2/apppasswords")
+        print("You can get your Google App Password here:")
+        print("https://myaccount.google.com/u/2/apppasswords")
         print("")
-        print("And you need have 2FA on")
-    
+        print("You must have 2FA enabled.")
+
     else:
         print("Invalid option.")
 
