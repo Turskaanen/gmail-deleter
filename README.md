@@ -45,6 +45,6 @@ To use this tool, you must:
 Google does not allow normal passwords for IMAP access.
 
 
-# usage: 
+# Usage: 
 
-python gmaildeleter.py
+Use: python gmaildeleter.py
