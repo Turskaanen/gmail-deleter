@@ -1,4 +1,4 @@
-# Gmail Email Delete Tool
+# Gmail Delete Tool
 
 A simple Python-based command‑line tool for deleting Gmail emails using IMAP.
 This script allows you to log in with your Gmail address and App Password, then delete emails based on:
